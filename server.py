@@ -52,6 +52,9 @@ async def get_drivers(limit: int = 10) -> List[Dict[str, Any]]:
         FROM driver
         ORDER BY name DESC
     """
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(query, limit)
+        return [dict(row) for row in rows]
 # Add a tool for database queries 
 @mcp.tool()
 async def database_query(query: str) -> List[Dict]:
