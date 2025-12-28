@@ -1,7 +1,7 @@
 {
 	"servers": {
 		"testmcp": {
-			"url": "http://0.0.0.0:8000/mcp",
+			"url": "http://0.0.0.0:10000/mcp",
 			"type": "http"
 		}
 	},
