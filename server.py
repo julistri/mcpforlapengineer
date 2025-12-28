@@ -39,7 +39,19 @@ async def get_pool() -> asyncpg.Pool:
 # Create an MCP server
 mcp = FastMCP("web-search", host="0.0.0.0", port=PORT)
 
+# Add a tool to list all drivers
+@mcp.tool()
+async def get_drivers(limit: int = 10) -> List[Dict[str, Any]]:
+    """
+    List all drivers in table driver(read-only).
+    """
+    pool = await get_pool()
 
+    query = """
+        SELECT name, steamname
+        FROM driver
+        ORDER BY name DESC
+    """
 # Add a tool for database queries 
 @mcp.tool()
 async def database_query(query: str) -> List[Dict]:
