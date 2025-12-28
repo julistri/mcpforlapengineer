@@ -2,7 +2,7 @@
 from mcp.server.fastmcp import FastMCP
 from tavily import TavilyClient
 from dotenv import load_dotenv
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import os
 import asyncpg 
 
