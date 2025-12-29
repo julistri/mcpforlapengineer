@@ -18,7 +18,7 @@ PORT = os.environ.get("PORT", 10000)
 
 # Database configuration
 DB_HOST = os.environ["DB_HOST"]
-DB_PORT = os.environ["DB_PORT"]
+DB_PORT = int(os.environ["DB_PORT"])
 DB_USER = os.environ["DB_USER"]
 DB_PASSWORD = os.environ["DB_PASSWORD"]
 DB_DATABASE = os.environ["DB_DATABASE"]
@@ -33,7 +33,7 @@ pool: Optional[asyncpg.Pool] = None
 async def get_pool() -> asyncpg.Pool:
     global pool
     if pool is None:
-        pool = await asyncpg.create_pool(DB_CONFIG)
+        pool = await asyncpg.create_pool(**DB_CONFIG)
     return pool
 
 # Create an MCP server
@@ -53,7 +53,10 @@ async def get_drivers(limit: int = 10) -> List[Dict[str, Any]]:
         ORDER BY name DESC
     """
     async with pool.acquire() as conn:
-        rows = await conn.fetch(query, limit)
+        if limit is not None and limit > 0:
+            rows = await conn.fetch(query + " LIMIT $1", limit)
+        else:
+            rows = await conn.fetch(query)
         return [dict(row) for row in rows]
 # Add a tool for database queries 
 @mcp.tool()
@@ -64,11 +67,11 @@ async def database_query(query: str) -> List[Dict]:
     pool = await get_pool()
 
     forbidden = ["insert", "update", "delete", "drop", "alter", "truncate"]
-    if any(word in sql.lower() for word in forbidden):
+    if any(word in query.lower() for word in forbidden):
         raise ValueError("Nur SELECT-Abfragen sind erlaubt")
 
     async with pool.acquire() as conn:
-        rows = await conn.fetch(sql)
+        rows = await conn.fetch(query)
         return [dict(row) for row in rows]
     
 # Add a tool that uses Tavily
