@@ -33,7 +33,7 @@ pool: Optional[asyncpg.Pool] = None
 async def get_pool() -> asyncpg.Pool:
     global pool
     if pool is None:
-        pool = await asyncpg.create_pool(**DB_CONFIG)
+        pool = await asyncpg.create_pool(DB_CONFIG)
     return pool
 
 # Create an MCP server
@@ -51,7 +51,6 @@ async def get_drivers(limit: int = 10) -> List[Dict[str, Any]]:
         SELECT name, steamname
         FROM driver
         ORDER BY name DESC
-        LIMIT $1
     """
     async with pool.acquire() as conn:
         rows = await conn.fetch(query, limit)
