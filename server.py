@@ -41,7 +41,7 @@ mcp = FastMCP("web-search", host="0.0.0.0", port=PORT)
 
 # Add a tool to list all drivers
 @mcp.tool()
-async def get_drivers(limit: int = 10) -> List[Dict[str, Any]]:
+async def get_drivers(query: str) -> List[Dict]:
     """
     List all drivers in table driver(read-only).
     """
@@ -53,7 +53,7 @@ async def get_drivers(limit: int = 10) -> List[Dict[str, Any]]:
         ORDER BY name DESC
     """
     async with pool.acquire() as conn:
-        rows = await conn.fetch(query, limit)
+        rows = await conn.fetch(query)
         return [dict(row) for row in rows]
 # Add a tool for database queries 
 @mcp.tool()
