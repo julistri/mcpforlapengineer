@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from typing import Dict, List, Optional, Any
 import os
 import asyncpg 
+import psycopg2
 
 # Tavily API key and Tavily client
 load_dotenv()
@@ -29,6 +30,15 @@ DB_CONFIG = {
     "password": DB_PASSWORD,
     "database": DB_DATABASE,
 }   
+def get_connection():
+    return psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_DATABASE,
+        user=DB_USER,
+        password=DB_PASSWORD,
+    )
+
 pool: Optional[asyncpg.Pool] = None
 async def get_pool() -> asyncpg.Pool:
     global pool
@@ -40,37 +50,63 @@ async def get_pool() -> asyncpg.Pool:
 mcp = FastMCP("web-search", host="0.0.0.0", port=PORT)
 
 # Add a tool to list all drivers
+@mcp.tool(
+    name="get_drivers",
+    description="Liest alle Einträge aus der Tabelle driver"
+)
+def get_drivers() -> list[dict]:
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM driver;")
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            return [
+                dict(zip(columns, row))
+                for row in rows
+            ]
+    finally:
+        conn.close()
+       
+# Add a tool that executes SQL queries
+def validate_select_query(query: str):
+    q = query.strip().lower()
+
+    if not q.startswith("select"):
+        raise ValueError("Nur SELECT-Statements sind erlaubt")
+
+    forbidden = [
+        ";", "--", "/*", "*/",
+        "insert", "update", "delete",
+        "drop", "alter", "truncate",
+        "create", "grant", "revoke"
+    ]
+
+    for word in forbidden:
+        if word in q:
+            raise ValueError(f"Verbotenes SQL-Element erkannt: {word}")
+
 @mcp.tool()
-async def get_drivers(query: str) -> List[Dict]:
+def run_select_query(query: str) -> list[dict]:
     """
-    List all drivers in table driver(read-only).
+    Führt ein frei wählbares SELECT-Statement aus (READ ONLY).
     """
-    pool = await get_pool()
+    validate_select_query(query)
 
-    query = """
-        SELECT name, steamname
-        FROM driver
-        ORDER BY name DESC
-    """
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(query)
-        return [dict(row) for row in rows]
-# Add a tool for database queries 
-@mcp.tool()
-async def database_query(query: str) -> List[Dict]:
-    """
-    Use this tool to query the database.
-    """
-    pool = await get_pool()
-
-    forbidden = ["insert", "update", "delete", "drop", "alter", "truncate"]
-    if any(word in sql.lower() for word in forbidden):
-        raise ValueError("Nur SELECT-Abfragen sind erlaubt")
-
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(sql)
-        return [dict(row) for row in rows]
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+            return [dict(zip(columns, row)) for row in rows]
+    finally:
+        conn.close()       
     
+
+
+
 # Add a tool that uses Tavily
 @mcp.tool()
 def web_search(query: str) -> List[Dict]:
