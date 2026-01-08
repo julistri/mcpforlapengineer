@@ -3,15 +3,12 @@ from mcp.server.fastmcp import FastMCP
 from tavily import TavilyClient
 from dotenv import load_dotenv
 from typing import Dict, List, Optional, Any
-import json
-import logging
 import os
 import asyncpg 
 import psycopg2
 
 # Tavily API key and Tavily client
 load_dotenv()
-logging.basicConfig(level=logging.INFO)
 if "TAVILY_API_KEY" not in os.environ:
     raise Exception("TAVILY_API_KEY environment variable not set")
   
@@ -65,12 +62,10 @@ def get_drivers() -> list[dict]:
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
 
-            result = [dict(zip(columns, row)) for row in rows]
-            logging.info("get_drivers: returning %d rows", len(result))
-            # Return a JSON-serializable object with an explicit array key to
-            # avoid ambiguous serialization that may get interpreted as a
-            # single object by remote callers or tooling.
-            return {"rows": result}
+            return [
+                dict(zip(columns, row))
+                for row in rows
+            ]
     finally:
         conn.close()
        
@@ -105,11 +100,9 @@ def run_select_query(query: str) -> list[dict]:
             cur.execute(query)
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
-            result = [dict(zip(columns, row)) for row in rows]
-            logging.info("run_select_query: query=%s returned %d rows", query, len(result))
-            return {"rows": result}
+            return [dict(zip(columns, row)) for row in rows]
     finally:
-        conn.close()
+        conn.close()       
     
 
 
