@@ -1,19 +1,12 @@
 
 from mcp.server.fastmcp import FastMCP
-from tavily import TavilyClient
 from dotenv import load_dotenv
 from typing import Dict, List, Optional, Any
 import os
 import asyncpg 
 import psycopg2
 
-# Tavily API key and Tavily client
 load_dotenv()
-if "TAVILY_API_KEY" not in os.environ:
-    raise Exception("TAVILY_API_KEY environment variable not set")
-  
-TAVILY_API_KEY = os.environ["TAVILY_API_KEY"]
-tavily_client = TavilyClient(TAVILY_API_KEY)
 
 PORT = os.environ.get("PORT", 10000)
 
@@ -47,13 +40,14 @@ async def get_pool() -> asyncpg.Pool:
     return pool
 
 # Create an MCP server
-mcp = FastMCP("web-search", host="0.0.0.0", port=PORT)
+mcp = FastMCP("lap-engineer", host="0.0.0.0", port=PORT)
 
 # Add a tool to list all drivers
 @mcp.tool(
     name="get_drivers",
     description="Liest alle Einträge aus der Tabelle driver"
 )
+
 def get_drivers() -> list[dict]:
     conn = get_connection()
     try:
@@ -68,6 +62,48 @@ def get_drivers() -> list[dict]:
             ]
     finally:
         conn.close()
+
+# Add a tool to list all cars
+@mcp.tool(
+    name="get_cars",
+    description="Liest alle Einträge aus der Tabelle cars"
+)
+
+def get_cars() -> list[dict]:
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM cars;")
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            return [
+                dict(zip(columns, row))
+                for row in rows
+            ]
+    finally:
+        conn.close()   
+
+# Add a tool to list all tracks
+@mcp.tool(
+    name="get_tracks",
+    description="Liest alle Einträge aus der Tabelle tracks"
+)
+
+def get_tracks() -> list[dict]:
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM track;")
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            return [
+                dict(zip(columns, row))
+                for row in rows
+            ]
+    finally:
+        conn.close()             
        
 # Add a tool that executes SQL queries
 def validate_select_query(query: str):
@@ -104,26 +140,6 @@ def run_select_query(query: str) -> list[dict]:
     finally:
         conn.close()       
     
-
-
-
-# Add a tool that uses Tavily
-@mcp.tool()
-def web_search(query: str) -> List[Dict]:
-    """
-    Use this tool to search the web for information.
-
-    Args:
-        query: The search query.
-
-    Returns:
-        The search results.
-    """
-    try:
-        response = tavily_client.search(query)
-        return response["results"]
-    except Exception as e:
-        return "Error: " + str(e)
 
 # Run the server
 if __name__ == "__main__":
