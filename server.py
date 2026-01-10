@@ -126,10 +126,19 @@ def validate_select_query(query: str):
 
 
 # Add a tool to get the fastest laps
+from typing import Any
+
 @mcp.tool()
-def run_fastestlap_query(query: str) -> list[dict]:
+def run_fastestlap_query(query: str) -> dict[str, Any]:
     """
-    Führt SELECT-Statement für die Tabelle v_fastest_laps aus (READ ONLY), um die schnellsten Runden zu erhalten.
+    Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps aus.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
     """
     validate_select_query(query)
 
@@ -139,9 +148,17 @@ def run_fastestlap_query(query: str) -> list[dict]:
             cur.execute(query)
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
-            return [dict(zip(columns, row)) for row in rows]
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
     finally:
-        conn.close() 
+        conn.close()
+
 
 # Frei wählbares SELECT-Statement
 @mcp.tool()
