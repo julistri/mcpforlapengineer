@@ -42,12 +42,12 @@ async def get_pool() -> asyncpg.Pool:
 # Create an MCP server
 mcp = FastMCP("lap-engineer", host="0.0.0.0", port=PORT)
 
+
 # Add a tool to list all drivers
 @mcp.tool(
     name="get_drivers",
     description="Liest alle Einträge aus der Tabelle driver"
 )
-
 def get_drivers() -> list[dict]:
     conn = get_connection()
     try:
@@ -69,7 +69,6 @@ def get_drivers() -> list[dict]:
     name="get_cars",
     description="Liest alle Einträge aus der Tabelle cars"
 )
-
 def get_cars() -> list[dict]:
     conn = get_connection()
     try:
@@ -91,7 +90,6 @@ def get_cars() -> list[dict]:
     name="get_tracks",
     description="Liest alle Einträge aus der Tabelle tracks"
 )
-
 def get_tracks() -> list[dict]:
     conn = get_connection()
     try:
@@ -108,116 +106,7 @@ def get_tracks() -> list[dict]:
         conn.close()             
        
 
-# Add a tool to list fastest GT3 laps per track
-@mcp.tool(
-    name="get_fastest_GT3_laps",
-    description="Liest alle Einträge aus der View fastest_GT3_laps_per_track"
-)
-
-def get_fastest_GT3_laps() -> list[dict]:
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM fastest_GT3_laps_per_track;")
-            columns = [desc[0] for desc in cur.description]
-            rows = cur.fetchall()
-
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
-    finally:
-        conn.close() 
-
-
-# Add a tool to list fastest LMP2 laps per track
-@mcp.tool(
-    name="get_fastest_LMP2_laps",
-    description="Liest alle Einträge aus der View fastest_LMP2_laps_per_track"
-)
-
-def get_fastest_LMP2_laps() -> list[dict]:
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM fastest_LMP2_laps_per_track;")
-            columns = [desc[0] for desc in cur.description]
-            rows = cur.fetchall()
-
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
-    finally:
-        conn.close() 
-
-# Add a tool to list fastest Hypercar laps per track
-@mcp.tool(
-    name="get_fastest_Hypercar_laps",
-    description="Liest alle Einträge aus der View fastest_Hypercar_laps_per_track"
-)
-
-def get_fastest_Hypercar_laps() -> list[dict]:
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM fastest_Hypercar_laps_per_track;")
-            columns = [desc[0] for desc in cur.description]
-            rows = cur.fetchall()
-
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
-    finally:
-        conn.close() 
-
-
-# Add a tool to list fastest GTE laps per track
-@mcp.tool(
-    name="get_fastest_GTE_laps",
-    description="Liest alle Einträge aus der View fastest_GTE_laps_per_track"
-)
-
-def get_fastest_GTE_laps() -> list[dict]:
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM fastest_GTE_laps_per_track;")
-            columns = [desc[0] for desc in cur.description]
-            rows = cur.fetchall()
-
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
-    finally:
-        conn.close() 
-
-
-# Add a tool to list fastest LMP3 laps per track
-@mcp.tool(
-    name="get_fastest_LMP3_laps",
-    description="Liest alle Einträge aus der View fastest_LMP3_laps_per_track"
-)
-
-def get_fastest_LMP3_laps() -> list[dict]:
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM fastest_LMP3_laps_per_track;")
-            columns = [desc[0] for desc in cur.description]
-            rows = cur.fetchall()
-
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
-    finally:
-        conn.close() 
-
-
-# Add a tool that executes SQL queries
+# a function to validate that the query is a safe SELECT statement
 def validate_select_query(query: str):
     q = query.strip().lower()
 
@@ -234,6 +123,25 @@ def validate_select_query(query: str):
     for word in forbidden:
         if word in q:
             raise ValueError(f"Verbotenes SQL-Element erkannt: {word}")
+
+
+# Add a tool to get the fastest laps
+@mcp.tool()
+def run_select_query(query: str) -> list[dict]:
+    """
+    Führt SELECT-Statement für die Tabelle v_fastest_laps aus (READ ONLY), um die schnellsten Runden zu erhalten.
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+            return [dict(zip(columns, row)) for row in rows]
+    finally:
+        conn.close() 
 
 # Frei wählbares SELECT-Statement
 @mcp.tool()
