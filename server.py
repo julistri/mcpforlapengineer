@@ -127,7 +127,7 @@ def validate_select_query(query: str):
 
 # Add a tool to get the fastest laps
 @mcp.tool()
-def run_select_query(query: str) -> list[dict]:
+def run_fastestlap_query(query: str) -> list[dict]:
     """
     Führt SELECT-Statement für die Tabelle v_fastest_laps aus (READ ONLY), um die schnellsten Runden zu erhalten.
     """
