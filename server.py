@@ -44,94 +44,109 @@ mcp = FastMCP("lap-engineer", host="0.0.0.0", port=PORT)
 
 
 # Add a tool to list all drivers
-@mcp.tool(
-    name="get_drivers",
-    description="Liest alle Einträge aus der Tabelle driver"
-)
-def get_drivers() -> list[dict]:
+@mcp.tool()
+def run_drivers_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der Tabelle driver aus, um Informationen zu Fahrern zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM driver;")
+            cur.execute(query)
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
 
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
     finally:
         conn.close()
 
 
 # Add a tool to list all cars
-@mcp.tool(
-    name="get_cars",
-    description="Liest alle Einträge aus der Tabelle cars"
-)
-def get_cars() -> list[dict]:
+@mcp.tool()
+def run_cars_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der Tabelle cars aus, um Informationen zu Autos zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM cars;")
+            cur.execute(query)
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
 
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
     finally:
-        conn.close()   
+        conn.close() 
 
 
 # Add a tool to list all tracks
-@mcp.tool(
-    name="get_tracks",
-    description="Liest alle Einträge aus der Tabelle tracks"
-)
-def get_tracks() -> list[dict]:
+@mcp.tool()
+def run_tracks_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der Tabelle track aus, um Informationen zu Strecken zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM track;")
+            cur.execute(query)
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
 
-            return [
-                dict(zip(columns, row))
-                for row in rows
-            ]
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
     finally:
-        conn.close()             
+        conn.close()         
        
 
-# a function to validate that the query is a safe SELECT statement
-def validate_select_query(query: str):
-    q = query.strip().lower()
-
-    if not q.startswith("select"):
-        raise ValueError("Nur SELECT-Statements sind erlaubt")
-
-    forbidden = [
-        ";", "--", "/*", "*/",
-        "insert", "update", "delete",
-        "drop", "alter", "truncate",
-        "create", "grant", "revoke"
-    ]
-
-    for word in forbidden:
-        if word in q:
-            raise ValueError(f"Verbotenes SQL-Element erkannt: {word}")
-
-
 # Add a tool to get the fastest laps
-from typing import Any
-
 @mcp.tool()
 def run_fastestlap_query(query: str) -> dict[str, Any]:
     """
-    Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps aus.
+    Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps aus, um die schnellsten Runden zu erhalten.
 
     Rückgabe:
     {
@@ -165,6 +180,12 @@ def run_fastestlap_query(query: str) -> dict[str, Any]:
 def run_select_query(query: str) -> list[dict]:
     """
     Führt ein frei wählbares SELECT-Statement aus (READ ONLY).
+     Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
     """
     validate_select_query(query)
 
@@ -174,10 +195,37 @@ def run_select_query(query: str) -> list[dict]:
             cur.execute(query)
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
-            return [dict(zip(columns, row)) for row in rows]
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
     finally:
-        conn.close()       
+        conn.close()   
     
+
+# a function to validate that the query is a safe SELECT statement
+def validate_select_query(query: str):
+    q = query.strip().lower()
+
+    if not q.startswith("select"):
+        raise ValueError("Nur SELECT-Statements sind erlaubt")
+
+    forbidden = [
+        ";", "--", "/*", "*/",
+        "insert", "update", "delete",
+        "drop", "alter", "truncate",
+        "create", "grant", "revoke"
+    ]
+
+    for word in forbidden:
+        if word in q:
+            raise ValueError(f"Verbotenes SQL-Element erkannt: {word}")
+
+
 
 # Run the server
 if __name__ == "__main__":
