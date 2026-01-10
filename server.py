@@ -43,7 +43,7 @@ async def get_pool() -> asyncpg.Pool:
 mcp = FastMCP("lap-engineer", host="0.0.0.0", port=PORT)
 
 
-# Add a tool to list all drivers
+# Add a tool to list drivers
 @mcp.tool()
 def run_drivers_query(query: str) -> dict[str, Any]:
     """
@@ -76,7 +76,7 @@ def run_drivers_query(query: str) -> dict[str, Any]:
         conn.close()
 
 
-# Add a tool to list all cars
+# Add a tool to list cars
 @mcp.tool()
 def run_cars_query(query: str) -> dict[str, Any]:
     """
@@ -109,7 +109,7 @@ def run_cars_query(query: str) -> dict[str, Any]:
         conn.close() 
 
 
-# Add a tool to list all tracks
+# Add a tool to list tracks
 @mcp.tool()
 def run_tracks_query(query: str) -> dict[str, Any]:
     """
@@ -147,6 +147,38 @@ def run_tracks_query(query: str) -> dict[str, Any]:
 def run_fastestlap_query(query: str) -> dict[str, Any]:
     """
     Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps aus, um die schnellsten Runden zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
+    finally:
+        conn.close()
+
+# Add a tool to get the avg lap times
+@mcp.tool()
+def run_avg_lap_time_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der View v_avg_lap_time aus, um die durchschnittlichen Rundenzeiten zu erhalten.
 
     Rückgabe:
     {
