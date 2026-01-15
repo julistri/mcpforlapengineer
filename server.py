@@ -140,7 +140,68 @@ def run_tracks_query(query: str) -> dict[str, Any]:
             }
     finally:
         conn.close()         
-       
+
+
+ # Add a tool to get the avg lap of a driver on a track
+
+
+# Add a tool to get the fastest lap of a driver on a track
+@mcp.tool()
+def get_fastest_lap_of_driver_on_track(
+    driver_id: int,
+    track_id: int
+) -> dict[str, Any]:
+    """
+    Ruft das PostgreSQL-Procedure get_fastest_lap_of_driver_on_track auf, 
+    um die schnellste Rundenzeit eines Fahrers auf einer Strecke zu erhalten.
+
+    Parameter:
+    - driver_id: ID des Fahrers
+    - track_id: ID der Strecke
+
+    Rückgabe:
+    {
+        "driver_id": int,
+        "track_id": int,
+        "row_count": int,
+        "rows": [ {col: value, ...}, ... ]
+    }
+    """
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            # Transaction ist für REFCURSOR Pflicht
+            cur.execute("BEGIN;")
+
+            # Procedure aufrufen
+            cur.execute(
+                "CALL get_avg_lap_of_driver_on_track(%s, %s, %s);",
+                (driver_id, track_id, "avg_lap_cursor")
+            )
+
+            # Cursor auslesen
+            cur.execute("FETCH ALL FROM avg_lap_cursor;")
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            cur.execute("COMMIT;")
+
+            return {
+                "driver_id": driver_id,
+                "track_id": track_id,
+                "row_count": len(data),
+                "rows": data,
+            }
+
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()      
+
 
 # Add a tool to get the fastest laps
 @mcp.tool()
@@ -173,6 +234,65 @@ def run_fastestlap_query(query: str) -> dict[str, Any]:
             }
     finally:
         conn.close()
+
+
+# Add a tool to get the avg lap of a driver on a track
+@mcp.tool()
+def get_avg_lap_of_driver_on_track(
+    driver_id: int,
+    track_id: int
+) -> dict[str, Any]:
+    """
+    Ruft das PostgreSQL-Procedure get_avg_lap_of_driver_on_track auf, 
+    um die durchschnittliche Rundenzeit eines Fahrers auf einer Strecke zu erhalten.
+
+    Parameter:
+    - driver_id: ID des Fahrers
+    - track_id: ID der Strecke
+
+    Rückgabe:
+    {
+        "driver_id": int,
+        "track_id": int,
+        "row_count": int,
+        "rows": [ {col: value, ...}, ... ]
+    }
+    """
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            # Transaction ist für REFCURSOR Pflicht
+            cur.execute("BEGIN;")
+
+            # Procedure aufrufen
+            cur.execute(
+                "CALL get_avg_lap_of_driver_on_track(%s, %s, %s);",
+                (driver_id, track_id, "avg_lap_cursor")
+            )
+
+            # Cursor auslesen
+            cur.execute("FETCH ALL FROM avg_lap_cursor;")
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            cur.execute("COMMIT;")
+
+            return {
+                "driver_id": driver_id,
+                "track_id": track_id,
+                "row_count": len(data),
+                "rows": data,
+            }
+
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
 
 # Add a tool to get the avg lap times
 @mcp.tool()
