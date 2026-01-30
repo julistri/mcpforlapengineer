@@ -236,6 +236,171 @@ def run_fastestlap_query(query: str) -> dict[str, Any]:
         conn.close()
 
 
+# Add a tool to get the count of fastest laps by cars
+@mcp.tool()
+def run_fastest_laps_car_count_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps_car_count aus, um die Anzahl der schnellsten Runden pro Fahrzeug zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
+    finally:
+        conn.close()        
+
+
+# Add a tool to get the count of driven laps by drivers
+@mcp.tool()
+def run_lap_count_driver_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der View v_lap_count_driver aus, um die Anzahl der gefahrenen Runden pro Fahrer zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
+    finally:
+        conn.close()
+
+
+# Add a tool to get the count of fastest laps by drivers
+@mcp.tool()
+def run_fastest_laps_driver_count_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps_driver_count aus, um die Anzahl der schnellsten Runden pro Fahrer zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
+    finally:
+        conn.close()
+
+
+# Add a tool to get the count of driven laps by cars
+@mcp.tool()
+def run_lap_count_car_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der View v_lap_count_car aus, um die Anzahl der gefahrenen Runden pro Fahrzeug zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
+    finally:
+        conn.close()
+
+
+# Add a tool to get the count of driven laps by tracks
+@mcp.tool()
+def run_lap_count_track_query(query: str) -> dict[str, Any]:
+    """
+    Führt ein READ-ONLY SELECT-Statement auf der View v_lap_count_track aus, um die Anzahl der gefahrenen Runden pro Strecke zu erhalten.
+
+    Rückgabe:
+    {
+        "rows": [ {col: value, ...}, ... ],
+        "row_count": int,
+        "columns": [str, ...]
+    }
+    """
+    validate_select_query(query)
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query)
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+            data = [dict(zip(columns, row)) for row in rows]
+
+            return {
+                "columns": columns,
+                "row_count": len(data),
+                "rows": data,
+            }
+    finally:
+        conn.close()
+
+
 # Add a tool to get the avg lap of a driver on a track
 @mcp.tool()
 def get_avg_lap_of_driver_on_track(
