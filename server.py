@@ -153,7 +153,7 @@ def get_fastest_lap_of_driver_on_track(
 ) -> dict[str, Any]:
     """
     Ruft das PostgreSQL-Procedure get_fastest_lap_of_driver_on_track auf, 
-    um die schnellste Rundenzeit eines Fahrers auf einer Strecke zu erhalten.
+    um die schnellste Rundenzeit eines bestimmten Fahrers auf einer Strecke zu erhalten.
 
     Parameter:
     - driver_id: ID des Fahrers
