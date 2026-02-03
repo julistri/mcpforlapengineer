@@ -176,12 +176,12 @@ def get_fastest_lap_of_driver_on_track(
 
             # Procedure aufrufen
             cur.execute(
-                "CALL get_avg_lap_of_driver_on_track(%s, %s, %s);",
-                (driver_id, track_id, "avg_lap_cursor")
+                "CALL get_fastest_lap_of_driver_on_track(%s, %s, %s);",
+                (driver_id, track_id, "fastest_lap_cursor")
             )
 
             # Cursor auslesen
-            cur.execute("FETCH ALL FROM avg_lap_cursor;")
+            cur.execute("FETCH ALL FROM fastest_lap_cursor;")
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
 
