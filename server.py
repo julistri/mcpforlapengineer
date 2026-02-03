@@ -463,7 +463,7 @@ def get_avg_lap_of_driver_on_track(
 @mcp.tool()
 def run_avg_lap_time_query(query: str) -> dict[str, Any]:
     """
-    Führt ein READ-ONLY SELECT-Statement auf der View v_avg_lap_time aus, um die durchschnittlichen Rundenzeit auf einer Stecke zu erhalten.
+    Führt ein READ-ONLY SELECT-Statement auf der View v_avg_laptimes aus, um die durchschnittlichen Rundenzeit auf einer Stecke zu erhalten.
 
     Rückgabe:
     {
