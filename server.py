@@ -208,6 +208,8 @@ def get_fastest_lap_of_driver_on_track(
 def run_fastestlap_query(query: str) -> dict[str, Any]:
     """
     Führt ein READ-ONLY SELECT-Statement auf der View v_fastest_laps aus, um die schnellste Runde auf einer Strecke zu erhalten.
+    Wenn der Fahrername unknown driver ist, Führe zusätzlich ein READ-ONLY SELECT-Statement auf der View v_fastest_laps_known_drivers aus.
+    Gebe immer das dazugehörige Setup mit aus.
 
     Rückgabe:
     {
